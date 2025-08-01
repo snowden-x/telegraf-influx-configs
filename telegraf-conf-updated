@@ -1,0 +1,258 @@
+# =====================================================================
+# Telegraf Configuration for SME Predictive Maintenance Lab
+# File location: C:\Program Files\Telegraf\telegraf.conf
+# VERSION 16: Comprehensive polling for all devices and key interfaces.
+# =====================================================================
+
+# --- Global Agent Configuration ---
+[agent]
+  interval = "30s"
+  round_interval = true
+  metric_batch_size = 1000
+  metric_buffer_limit = 10000
+  collection_jitter = "0s"
+  flush_interval = "10s"
+  flush_jitter = "0s"
+  hostname = "monitoring-server"
+
+# =====================================================================
+# OUTPUTS - Where to send the data
+# =====================================================================
+
+[[outputs.influxdb_v2]]
+  urls = ["http://127.0.0.1:8086"]
+  token = "HOQ7hhiW2D5Jm1wUZMFAYPqQq4YUmthoBEGQKNyUC0952KCCqRxZoGFbeKDi1uK466c_RnyxY-7fC38Tl952EA=="
+  organization = "sndvt"
+  bucket = "sndvt-bucket"
+
+# =====================================================================
+# INPUTS - What data to collect
+# =====================================================================
+
+# --- Input 1: NetFlow v5 Collector ---
+[[inputs.netflow]]
+  service_address = "udp://:2055"
+  protocol = "netflow v5"
+
+# --- Input 2: SNMP Polling for System-Wide Health ---
+# This block polls CPU, buffer, and uptime stats from ALL devices.
+[[inputs.snmp]]
+  agents = [ 
+    "192.168.1.60", 
+    "192.168.1.66", 
+    "192.168.1.67", 
+    "192.168.1.68",
+    "192.168.1.122" 
+  ]
+  version = 2
+  community = "public"
+  name = "system_health"
+
+  [inputs.snmp.tags]
+    hostname = "1.3.6.1.2.1.1.5.0" # sysName OID
+
+  [[inputs.snmp.field]]
+    name = "uptime"
+    oid = "1.3.6.1.2.1.1.3.0"
+  
+  [[inputs.snmp.field]]
+    name = "cpu_5min"
+    oid = "1.3.6.1.4.1.9.2.1.58.0"
+
+  [[inputs.snmp.field]]
+    name = "buffer_small_free"
+    oid = "1.3.6.1.4.1.9.2.1.9.0"
+  [[inputs.snmp.field]]
+    name = "buffer_medium_free"
+    oid = "1.3.6.1.4.1.9.2.1.11.0"
+
+# --- Input 3: SNMP Polling for Interface-Specific Stats ---
+# NOTE: The final number in the OID is the interface index. Run 
+# "show snmp mib ifmib ifindex" on a device to find its indexes.
+
+# ---------------------------------------------------------------------
+# CORE-SWITCH (192.168.1.60)
+# ---------------------------------------------------------------------
+# Interface Gi0/0 (index 1)
+[[inputs.snmp]]
+  agents = [ "192.168.1.60" ]
+  version = 2
+  community = "public"
+  name = "interface_stats"
+  [inputs.snmp.tags]
+    hostname = "CORE-SWITCH"
+    ifName = "Gi0/0"
+  [[inputs.snmp.field]]
+    name = "bytes_in"
+    oid = "1.3.6.1.2.1.2.2.1.10.1"
+  [[inputs.snmp.field]]
+    name = "bytes_out"
+    oid = "1.3.6.1.2.1.2.2.1.16.1"
+  [[inputs.snmp.field]]
+    name = "errors_in"
+    oid = "1.3.6.1.2.1.2.2.1.14.1"
+  [[inputs.snmp.field]]
+    name = "discards_in"
+    oid = "1.3.6.1.2.1.2.2.1.13.1"
+
+# Interface Gi0/1 (index 2)
+[[inputs.snmp]]
+  agents = [ "192.168.1.60" ]
+  version = 2
+  community = "public"
+  name = "interface_stats"
+  [inputs.snmp.tags]
+    hostname = "CORE-SWITCH"
+    ifName = "Gi0/1"
+  [[inputs.snmp.field]]
+    name = "bytes_in"
+    oid = "1.3.6.1.2.1.2.2.1.10.2"
+  [[inputs.snmp.field]]
+    name = "bytes_out"
+    oid = "1.3.6.1.2.1.2.2.1.16.2"
+  [[inputs.snmp.field]]
+    name = "errors_in"
+    oid = "1.3.6.1.2.1.2.2.1.14.2"
+  [[inputs.snmp.field]]
+    name = "discards_in"
+    oid = "1.3.6.1.2.1.2.2.1.13.2"
+
+# Interface Gi0/2 (index 3)
+[[inputs.snmp]]
+  agents = [ "192.168.1.60" ]
+  version = 2
+  community = "public"
+  name = "interface_stats"
+  [inputs.snmp.tags]
+    hostname = "CORE-SWITCH"
+    ifName = "Gi0/2"
+  [[inputs.snmp.field]]
+    name = "bytes_in"
+    oid = "1.3.6.1.2.1.2.2.1.10.3"
+  [[inputs.snmp.field]]
+    name = "bytes_out"
+    oid = "1.3.6.1.2.1.2.2.1.16.3"
+  [[inputs.snmp.field]]
+    name = "errors_in"
+    oid = "1.3.6.1.2.1.2.2.1.14.3"
+  [[inputs.snmp.field]]
+    name = "discards_in"
+    oid = "1.3.6.1.2.1.2.2.1.13.3"
+
+# Interface Gi0/3 (index 4)
+[[inputs.snmp]]
+  agents = [ "192.168.1.60" ]
+  version = 2
+  community = "public"
+  name = "interface_stats"
+  [inputs.snmp.tags]
+    hostname = "CORE-SWITCH"
+    ifName = "Gi0/3"
+  [[inputs.snmp.field]]
+    name = "bytes_in"
+    oid = "1.3.6.1.2.1.2.2.1.10.4"
+  [[inputs.snmp.field]]
+    name = "bytes_out"
+    oid = "1.3.6.1.2.1.2.2.1.16.4"
+  [[inputs.snmp.field]]
+    name = "errors_in"
+    oid = "1.3.6.1.2.1.2.2.1.14.4"
+  [[inputs.snmp.field]]
+    name = "discards_in"
+    oid = "1.3.6.1.2.1.2.2.1.13.4"
+
+# ---------------------------------------------------------------------
+# AccSW-Srv (192.168.1.66) - Interface Gi0/0 (index 1)
+# ---------------------------------------------------------------------
+[[inputs.snmp]]
+  agents = [ "192.168.1.66" ]
+  version = 2
+  community = "public"
+  name = "interface_stats"
+  [inputs.snmp.tags]
+    hostname = "AccSW-Srv"
+    ifName = "Gi0/0"
+  [[inputs.snmp.field]]
+    name = "bytes_in"
+    oid = "1.3.6.1.2.1.2.2.1.10.1"
+  [[inputs.snmp.field]]
+    name = "bytes_out"
+    oid = "1.3.6.1.2.1.2.2.1.16.1"
+  [[inputs.snmp.field]]
+    name = "errors_in"
+    oid = "1.3.6.1.2.1.2.2.1.14.1"
+  [[inputs.snmp.field]]
+    name = "discards_in"
+    oid = "1.3.6.1.2.1.2.2.1.13.1"
+
+# ---------------------------------------------------------------------
+# AccSW-Mktg (192.168.1.67) - Interface Gi0/0 (index 1)
+# ---------------------------------------------------------------------
+[[inputs.snmp]]
+  agents = [ "192.168.1.67" ]
+  version = 2
+  community = "public"
+  name = "interface_stats"
+  [inputs.snmp.tags]
+    hostname = "AccSW-Mktg"
+    ifName = "Gi0/0"
+  [[inputs.snmp.field]]
+    name = "bytes_in"
+    oid = "1.3.6.1.2.1.2.2.1.10.1"
+  [[inputs.snmp.field]]
+    name = "bytes_out"
+    oid = "1.3.6.1.2.1.2.2.1.16.1"
+  [[inputs.snmp.field]]
+    name = "errors_in"
+    oid = "1.3.6.1.2.1.2.2.1.14.1"
+  [[inputs.snmp.field]]
+    name = "discards_in"
+    oid = "1.3.6.1.2.1.2.2.1.13.1"
+
+# ---------------------------------------------------------------------
+# AccSW-Eng (192.168.1.68) - Interface Gi0/0 (index 1)
+# ---------------------------------------------------------------------
+[[inputs.snmp]]
+  agents = [ "192.168.1.68" ]
+  version = 2
+  community = "public"
+  name = "interface_stats"
+  [inputs.snmp.tags]
+    hostname = "AccSW-Eng"
+    ifName = "Gi0/0"
+  [[inputs.snmp.field]]
+    name = "bytes_in"
+    oid = "1.3.6.1.2.1.2.2.1.10.1"
+  [[inputs.snmp.field]]
+    name = "bytes_out"
+    oid = "1.3.6.1.2.1.2.2.1.16.1"
+  [[inputs.snmp.field]]
+    name = "errors_in"
+    oid = "1.3.6.1.2.1.2.2.1.14.1"
+  [[inputs.snmp.field]]
+    name = "discards_in"
+    oid = "1.3.6.1.2.1.2.2.1.13.1"
+
+# ---------------------------------------------------------------------
+# ACCESS-POINT (192.168.1.122) - Interface Gi0/0 (index 1)
+# ---------------------------------------------------------------------
+[[inputs.snmp]]
+  agents = [ "192.168.1.122" ]
+  version = 2
+  community = "public"
+  name = "interface_stats"
+  [inputs.snmp.tags]
+    hostname = "ACCESS-POINT"
+    ifName = "Gi0/0"
+  [[inputs.snmp.field]]
+    name = "bytes_in"
+    oid = "1.3.6.1.2.1.2.2.1.10.1"
+  [[inputs.snmp.field]]
+    name = "bytes_out"
+    oid = "1.3.6.1.2.1.2.2.1.16.1"
+  [[inputs.snmp.field]]
+    name = "errors_in"
+    oid = "1.3.6.1.2.1.2.2.1.14.1"
+  [[inputs.snmp.field]]
+    name = "discards_in"
+    oid = "1.3.6.1.2.1.2.2.1.13.1"
